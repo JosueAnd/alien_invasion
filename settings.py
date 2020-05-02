@@ -8,3 +8,6 @@ class Settings:
         self.caption = 'Alien Invasion'
         self.screen_width = 1200
         self.screen_height = 800
+
+        # Ship settings.
+        self.ship_speed = 0.5
