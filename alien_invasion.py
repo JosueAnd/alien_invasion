@@ -28,6 +28,8 @@ class AlienInvasion:
         self.bullets = pygame.sprite.Group()
         self.aliens = pygame.sprite.Group()
 
+        self.lives = self.settings.ship_limit
+
         self._create_fleet()
 
     def run_game(self):
@@ -36,7 +38,35 @@ class AlienInvasion:
             self._check_events()
             self.ship.update()
             self._update_bullets()
+            self._update_aliens()
+            self._check_alien_ship_collisions()
             self._update_screen()
+
+    def _change_fleet_direction(self):
+        """Drop the entire fleet and change the fleet's direction."""
+        for alien in self.aliens.sprites():
+            alien.rect.y += self.settings.fleet_drop_speed
+        self.settings.fleet_direction *= -1
+
+    def _check_alien_ship_collisions(self):
+        """Look for and respond to alien-ship collisions."""
+        if pygame.sprite.spritecollideany(self.ship, self.aliens):
+            if self.lives > 1:
+                self.lives -= 1
+                self._reset_fleet(self.aliens)
+            elif self.lives == 1:
+                sys.exit()
+
+    def _check_bullet_alien_collisions(self):
+        """Respond to bullet-alien collisions."""
+        # Remove any bullets and aliens that have collided.
+        collisions = pygame.sprite.groupcollide(
+            self.bullets, self.aliens, True, True
+        )
+        # Destroy existing bullets and create new fleet.
+        if not self.aliens:
+            self.bullets.empty()
+            self._create_fleet()
 
     def _check_events(self):
         """Respond to key presses and mouse events."""
@@ -47,6 +77,13 @@ class AlienInvasion:
                 self._check_key_down_events(event)
             elif event.type == pygame.KEYUP:
                 self._check_key_up_events(event)
+
+    def _check_fleet_edges(self):
+        """Respond appropriately if any aliens have reached an edge."""
+        for alien in self.aliens.sprites():
+            if alien.check_edges():
+                self._change_fleet_direction()
+                break
 
     def _check_key_down_events(self, event):
         """Respond to key presses."""
@@ -88,12 +125,14 @@ class AlienInvasion:
         alien_width, alien_height = alien.rect.size
         # Determine the number of columns of aliens that fit on the screen.
         available_space_x = self.settings.screen_width - (2 * alien_width)
-        number_aliens_x = available_space_x // (2 * alien_width)
+        # number_aliens_x = available_space_x // (2 * alien_width)
+        number_aliens_x = available_space_x // (4 * alien_width)
 
         # Determine the number of rows of aliens that fit on the screen.
         ship_height = self.ship.rect.height
         available_space_y = self.settings.screen_height - (3 * alien_height) - ship_height
-        number_of_rows = available_space_y // (2 * alien_height)
+        # number_of_rows = available_space_y // (2 * alien_height)
+        number_of_rows = available_space_y // (4 * alien_height)
 
         # Create the full fleet of aliens.
         for row_number in range(number_of_rows):
@@ -117,11 +156,28 @@ class AlienInvasion:
             new_bullet = Bullet(self)
             self.bullets.add(new_bullet)
 
+    def _reset_fleet(self, fleet):
+        """Reset the fleet at the top of the screen after a life is lost."""
+        alien = self.aliens.sprites()[0]
+        distance_from_top = alien.rect.y - alien.rect.height
+        for alien in self.aliens:
+            alien.rect.y -= distance_from_top
+
+    def _update_aliens(self):
+        """
+            Check if the fleet is at an edge, then update the
+            positions of all aliens in the fleet.
+        """
+        self._check_fleet_edges()
+        self.aliens.update()
+
     def _update_bullets(self):
         """Update position of bullets and get rid of old bullets."""
         # Update the position of each bullet along the y axis.
         self.bullets.update()
         self._delete_old_bullets()
+
+        self._check_bullet_alien_collisions()
 
     def _update_screen(self):
         """Update images on the screen, and flip to the new screen."""
