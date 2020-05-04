@@ -1,9 +1,13 @@
 import sys
+from time import sleep
+
 import pygame
+
+from alien import Alien
+from bullet import Bullet
+from game_stats import GameStats
 from settings import Settings
 from ship import Ship
-from bullet import Bullet
-from alien import Alien
 
 
 class AlienInvasion:
@@ -12,8 +16,11 @@ class AlienInvasion:
     def __init__(self):
         """Initialize the game, and create game resources."""
         pygame.init()
+        # Loading the game settings.
         self.settings = Settings()
 
+        # Setting the screen size. Full Screen commented out for multiple
+        # monitors.
         # self.screen = pygame.display.set_mode(
         #     (0, 0), pygame.FULLSCREEN
         # )
@@ -24,11 +31,12 @@ class AlienInvasion:
         )
         pygame.display.set_caption(self.settings.caption)
 
+        # Game instance variables.
         self.ship = Ship(self)
         self.bullets = pygame.sprite.Group()
         self.aliens = pygame.sprite.Group()
-
         self.lives = self.settings.ship_limit
+        self.stats = GameStats(self)
 
         self._create_fleet()
 
