@@ -80,6 +80,7 @@ class AlienInvasion:
                 sleep(.5)
             elif self.stats.ships_left == self.settings.game_over:
                 self.stats.game_active = False
+                pygame.mouse.set_visible(True)
 
     def _check_bullet_alien_collisions(self):
         """Respond to bullet-alien collisions."""
@@ -102,8 +103,7 @@ class AlienInvasion:
             elif event.type == pygame.KEYUP:
                 self._check_key_up_events(event)
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                mouse_position = pygame.mouse.get_pos()
-                self._check_play_button(mouse_position)
+                self._check_play_button(pygame.mouse.get_pos())
 
     def _check_fleet_edges(self):
         """Respond appropriately if any aliens have reached an edge."""
@@ -122,6 +122,8 @@ class AlienInvasion:
             self.ship.moving_left = True
         elif event.key == pygame.K_SPACE:
             self._fire_bullet()
+        elif event.key == pygame.K_p:
+            self._check_play_button(pygame.mouse.get_pos())
         elif event.key == pygame.K_q:
             # Shortcut to quit the game.
             sys.exit()
@@ -149,6 +151,9 @@ class AlienInvasion:
             # Create a new fleet and center the ship.
             self._create_fleet()
             self.ship.center_ship()
+
+            # Hide the mouse cursor.
+            pygame.mouse.set_visible(False)
 
     def _create_alien(self, alien_number, row_number):
         """Create an alien and place it in the row."""
