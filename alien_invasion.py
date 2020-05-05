@@ -35,7 +35,6 @@ class AlienInvasion:
         self.ship = Ship(self)
         self.bullets = pygame.sprite.Group()
         self.aliens = pygame.sprite.Group()
-        self.lives = self.settings.ship_limit
         self.stats = GameStats(self)
 
         self._create_fleet()
@@ -44,10 +43,12 @@ class AlienInvasion:
         """Start the main loop for the game."""
         while True:
             self._check_events()
-            self.ship.update()
-            self._update_bullets()
-            self._update_aliens()
-            self._check_alien_ship_collisions()
+
+            if self.stats.game_active:
+                self.ship.update()
+                self._update_bullets()
+                self._update_aliens()
+
             self._update_screen()
 
     def _change_fleet_direction(self):
@@ -56,14 +57,25 @@ class AlienInvasion:
             alien.rect.y += self.settings.fleet_drop_speed
         self.settings.fleet_direction *= -1
 
+    def _check_aliens_bottom(self):
+        """Check if any aliens have reached the bottom of the screen."""
+        for alien in self.aliens:
+            if alien.rect.bottom >= self.screen.get_rect().bottom:
+                self.stats.ships_left -= 1
+                self._reset_fleet()
+                self.ship.center_ship()
+
     def _check_alien_ship_collisions(self):
         """Look for and respond to alien-ship collisions."""
         if pygame.sprite.spritecollideany(self.ship, self.aliens):
-            if self.lives > 1:
-                self.lives -= 1
-                self._reset_fleet(self.aliens)
-            elif self.lives == 1:
-                sys.exit()
+            if self.stats.ships_left > 1:
+                self.stats.ships_left -= 1
+                self.bullets.empty()
+                self._reset_fleet()
+                self.ship.center_ship()
+                sleep(.5)
+            elif self.stats.ships_left == 1:
+                self.stats.game_active = False
 
     def _check_bullet_alien_collisions(self):
         """Respond to bullet-alien collisions."""
@@ -164,7 +176,7 @@ class AlienInvasion:
             new_bullet = Bullet(self)
             self.bullets.add(new_bullet)
 
-    def _reset_fleet(self, fleet):
+    def _reset_fleet(self):
         """Reset the fleet at the top of the screen after a life is lost."""
         alien = self.aliens.sprites()[0]
         distance_from_top = alien.rect.y - alien.rect.height
@@ -178,6 +190,10 @@ class AlienInvasion:
         """
         self._check_fleet_edges()
         self.aliens.update()
+
+        self._check_alien_ship_collisions()
+
+        self._check_aliens_bottom()
 
     def _update_bullets(self):
         """Update position of bullets and get rid of old bullets."""
