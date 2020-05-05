@@ -5,8 +5,10 @@ class GameStats:
         """Initialize statistics."""
         self.settings = ai_game.settings
         self.ships_left = None
-        self.game_active = True
         self.reset_stats()
+
+        # Start game in an inactive state.
+        self.game_active = False
 
     def reset_stats(self):
         """Initialize statistics that can change during the game."""

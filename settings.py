@@ -10,8 +10,9 @@ class Settings:
         self.screen_height = 500
 
         # Ship settings.
-        self.ship_speed = 20  # was 1.5
+        self.ship_speed = 10  # was 1.5
         self.ship_limit = 3
+        self.game_over = 0
 
         # Bullet settings.
         self.bullet_speed = self.ship_speed * 1.5
@@ -21,7 +22,7 @@ class Settings:
         self.bullet_limit = 3
 
         # Alien settings.
-        self.alien_speed = 20  # was .5
-        self.fleet_drop_speed = 50  # was 35
+        self.alien_speed = 5  # was .5
+        self.fleet_drop_speed = 25  # was 35
         # fleet_direction of 1 represents right; -1 represents left.
         self.fleet_direction = 1

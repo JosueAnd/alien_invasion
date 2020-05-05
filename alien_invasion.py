@@ -5,6 +5,7 @@ import pygame
 
 from alien import Alien
 from bullet import Bullet
+from button import Button
 from game_stats import GameStats
 from settings import Settings
 from ship import Ship
@@ -39,6 +40,9 @@ class AlienInvasion:
 
         self._create_fleet()
 
+        # Make the play button.
+        self.play_button = Button(self, 'New Game')
+
     def run_game(self):
         """Start the main loop for the game."""
         while True:
@@ -68,13 +72,13 @@ class AlienInvasion:
     def _check_alien_ship_collisions(self):
         """Look for and respond to alien-ship collisions."""
         if pygame.sprite.spritecollideany(self.ship, self.aliens):
-            if self.stats.ships_left > 1:
+            if self.stats.ships_left > self.settings.game_over:
                 self.stats.ships_left -= 1
                 self.bullets.empty()
                 self._reset_fleet()
                 self.ship.center_ship()
                 sleep(.5)
-            elif self.stats.ships_left == 1:
+            elif self.stats.ships_left == self.settings.game_over:
                 self.stats.game_active = False
 
     def _check_bullet_alien_collisions(self):
@@ -97,6 +101,9 @@ class AlienInvasion:
                 self._check_key_down_events(event)
             elif event.type == pygame.KEYUP:
                 self._check_key_up_events(event)
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_position = pygame.mouse.get_pos()
+                self._check_play_button(mouse_position)
 
     def _check_fleet_edges(self):
         """Respond appropriately if any aliens have reached an edge."""
@@ -127,6 +134,11 @@ class AlienInvasion:
         elif event.key == pygame.K_LEFT:
             # Set ship left movement flag to False.
             self.ship.moving_left = False
+
+    def _check_play_button(self, mouse_position):
+        """Start a new game when the player clicks New Game."""
+        if self.play_button.rect.collidepoint(mouse_position):
+            self.stats.game_active = True
 
     def _create_alien(self, alien_number, row_number):
         """Create an alien and place it in the row."""
@@ -218,6 +230,10 @@ class AlienInvasion:
         self._draw_all_bullets()
         # Redraw the alien fleet during each pass through the loop.
         self.aliens.draw(self.screen)
+
+        # Draw the play button if the game is inactive.
+        if not self.stats.game_active:
+            self.play_button.draw_button()
 
         # Make the most recently drawn screen visible.
         pygame.display.flip()
