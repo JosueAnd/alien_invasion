@@ -1,3 +1,5 @@
+"""Author: Joshua Andujar"""
+
 import sys
 from time import sleep
 
